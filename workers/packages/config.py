@@ -1,11 +1,12 @@
 import configparser
 import os
 
-from workers.logger import logger
+from workers import __PATH__
+from workers.packages.logger import logger
 
 QUEUE_NAME = "profile"
 RABBIT_HOST = "localhost"
-CONFIG_FILE = f"{os.path.dirname(__file__)}\\config.ini"
+CONFIG_FILE = f"{__PATH__}\\config.ini"
 
 if not os.path.exists(CONFIG_FILE):
     logger.critical(" [x] Config file is missing")

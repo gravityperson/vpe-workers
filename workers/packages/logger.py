@@ -9,7 +9,12 @@ class Logger:
     def __init__(self):
         self._logger = logging.getLogger(__NAME__)
         self._logger.setLevel(level=logging.INFO)
-        self._logger.addHandler(logging.StreamHandler())
+
+        formatter = logging.Formatter(f"%(asctime)s \t %(levelname)s > %(message)s")
+        handler = logging.StreamHandler()
+        handler.setFormatter(formatter)
+
+        self._logger.addHandler(handler)
 
     def info(self, message):
         self._logger.info(message)
