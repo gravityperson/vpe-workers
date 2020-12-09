@@ -6,13 +6,14 @@ import json
 import aiovk
 import pika
 
-from logger import info, critical, debug
+from workers.config import config
+from workers.logger import logger
 
-APP_ID = 4544367
-APP_SCOPE = 140492255
+RABBIT_HOST = config.get("APP", "RABBIT_HOST")
+RABBIT_QUEUE = config.get("APP", "RABBIT_QUEUE")
 
-QUEUE_NAME = "profile"
-RABBIT_HOST = "localhost"
+APP_ID = config.get("API", "APP_ID", fallback=0)
+APP_SCOPE = config.get("API", "APP_SCOPE", fallback=0)
 
 
 def callback(channel, method, properties, body):
@@ -21,10 +22,10 @@ def callback(channel, method, properties, body):
         login = request["login"]
         password = request["password"]
 
-        info(" [x] Received a new login/password pair")
+        logger.info(" [x] Received a new login/password pair")
         asyncio.run(main(login, password))
     except Exception as e:
-        critical(" [x] An error occurred: %s" % e)
+        logger.critical(" [x] An error occurred: %s" % e)
 
 
 async def main(login, password):
@@ -32,16 +33,16 @@ async def main(login, password):
                                     password=password,
                                     app_id=APP_ID,
                                     scope=APP_SCOPE)
-    debug(" [x] Authorizing attempt")
+    logger.debug(" [x] Authorizing attempt")
     await session.authorize()
 
     api = aiovk.API(session)
 
-    debug(" [x] Requesting profile info")
+    logger.debug(" [x] Requesting profile info")
     user_info = await api("account.getProfileInfo")
 
-    info(" [x] First/Last name: %s %s" %
-         (user_info["first_name"], user_info["last_name"]))
+    logger.info(" [x] First/Last name: %s %s" %
+                (user_info["first_name"], user_info["last_name"]))
 
     await session.close()
 
@@ -51,22 +52,22 @@ def start_consuming():
         connection = pika.BlockingConnection(
             pika.ConnectionParameters(RABBIT_HOST))
     except:
-        critical(" [x] Error rabbitmq connecting. Exiting")
+        logger.critical(" [x] Error rabbitmq connecting. Exiting")
         exit()
 
     channel = connection.channel()
 
-    channel.queue_declare(queue=QUEUE_NAME)
-    channel.basic_consume(queue=QUEUE_NAME,
+    channel.queue_declare(queue=RABBIT_QUEUE)
+    channel.basic_consume(queue=RABBIT_QUEUE,
                           auto_ack=True,
                           on_message_callback=callback)
 
-    info(" [x] Waiting for profile requests")
+    logger.info(" [x] Waiting for profile requests")
     channel.start_consuming()
 
 
 if __name__ == "__main__":
-    info(" [x] Initializing application")
+    logger.info(" [x] Initializing application")
     start_consuming()
 
     exit()
