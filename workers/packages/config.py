@@ -14,7 +14,3 @@ if not os.path.exists(CONFIG_FILE):
 
 config = configparser.ConfigParser()
 config.read(CONFIG_FILE)
-
-config.add_section("APP")
-config.set("APP", "RABBIT_HOST", RABBIT_HOST)
-config.set("APP", "RABBIT_QUEUE", QUEUE_NAME)

@@ -22,5 +22,8 @@ class Logger:
     def critical(self, message):
         self._logger.critical(message)
 
+    def debug(self, message):
+        self._logger.debug(message)
+
 
 logger = Logger()
